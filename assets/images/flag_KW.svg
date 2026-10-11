@@ -1,0 +1,6 @@
+<svg width="24" height="16" viewBox="0 0 24 16" fill="none" >
+        <rect width="24" height="5.33" fill="#007A3D" />
+        <rect y="5.33" width="24" height="5.34" fill="#FFFFFF" />
+        <rect y="10.67" width="24" height="5.33" fill="#CE1126" />
+        <path d="M0 0l6 5.33v5.34L0 16z" fill="#000000" />
+      </svg>

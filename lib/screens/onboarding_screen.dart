@@ -1,184 +1,149 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/constants/colors.dart';
 import '../providers/app_provider.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  int current = 0;
+  static const slides = [
+    (
+      'onboarding_1.png',
+      'لحوم فاخرة تصل إلى بابك',
+      'قطع مختارة بعناية من مزارعنا الموثوقة، طازجة ومبرّدة وجاهزة للطهي.'
+    ),
+    (
+      'onboarding_2.jpg',
+      'اختر تقطيعك وكمياتك',
+      'حدد نوع التقطيع، الوزن، والتجهيز حسب ذوقك — وجهّزه لك تماماً كما تريد.'
+    ),
+    (
+      'onboarding_3.jpg',
+      'منتجات متاحة حسب منطقتك',
+      'نعرض لك ما هو متوفر فعلًا في منطقتك لنضمن أعلى درجات الطازجة والسرعة.'
+    ),
+  ];
+  @override
+  Widget build(BuildContext context) => Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // 1. Full Image Background (Marbled Steak)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.65,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  'assets/images/onboarding_1.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Image.asset(
-                    'assets/images/onboarding_1.jpg',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                // Gradient Fade to White at Bottom
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 120,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white.withOpacity(0.0),
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 2. Top Skip Button
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            left: 20,
-            child: TextButton(
-              onPressed: () {
-                context.read<AppProvider>().setFlow(AppFlow.login);
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.black.withOpacity(0.35),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text(
-                'تخطي',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-
-          // 3. Bottom Figma Card Container (Frame 2147225617)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 34),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  topRight: Radius.circular(32),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x0F000000),
-                    blurRadius: 20,
-                    offset: Offset(0, -6),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 3 Dots Indicator (Rightmost pill active for RTL)
+      body: SafeArea(
+          child: LayoutBuilder(
+        builder: (context, bounds) => SingleChildScrollView(
+            child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: bounds.maxHeight),
+          child: Column(children: [
+            SizedBox(
+                height: (bounds.maxHeight * .735).clamp(260.0, 650.0),
+                width: double.infinity,
+                child: Stack(fit: StackFit.expand, children: [
+                  AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Image.asset('assets/images/${slides[current].$1}',
+                          key: ValueKey(current),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          alignment: current == 0
+                              ? const Alignment(0, -.2)
+                              : current == 1
+                                  ? const Alignment(0, -.3)
+                                  : const Alignment(-.1, 0))),
+                  const Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 180,
+                      child: DecoratedBox(
+                          decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Color(0x00FFFFFF), Colors.white])))),
+                  Positioned(
+                      top: 48,
+                      left: 20,
+                      child: TextButton(
+                          onPressed: () => context
+                              .read<AppProvider>()
+                              .setFlow(AppFlow.login),
+                          style: TextButton.styleFrom(
+                              backgroundColor: const Color(0x66000000),
+                              foregroundColor: Colors.white,
+                              shape: const StadiumBorder(),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14)),
+                          child: const Text('تخطي',
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w600)))),
+                ])),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Column(children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDot(false),
-                      const SizedBox(width: 6),
-                      _buildDot(false),
-                      const SizedBox(width: 6),
-                      _buildDot(true), // Active Pill
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Heading
-                  Text(
-                    'لحوم طازجة وذبح يومي',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Description
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'ننتقي لك أجود الذبائح واللحوم البلدية المجهزة بعناية فائقة وتوصيل سريع ومبرد إلى باب منزلك.',
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                          3,
+                          (i) => GestureDetector(
+                              onTap: () => setState(() => current = i),
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 3),
+                                  child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 350),
+                                      width: i == current ? 24 : 6,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                          color: i == current
+                                              ? const Color(0xFF741018)
+                                              : const Color(0xFFE2DCDA),
+                                          borderRadius:
+                                              BorderRadius.circular(3))))))),
+                  const SizedBox(height: 20),
+                  Text(slides[current].$2,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.6,
-                          ),
-                    ),
-                  ),
+                      style: const TextStyle(
+                          fontSize: 24,
+                          height: 1.28,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E1B1B))),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      child: Text(slides[current].$3,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 13.5,
+                              height: 1.65,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF77706D)))),
                   const SizedBox(height: 28),
-
-                  // 54px CTA Button
                   SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.read<AppProvider>().setFlow(AppFlow.login);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.deerBlood500,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text(
-                        'ابدأ الآن',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDot(bool isActive) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      width: isActive ? 24 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.deerBlood500 : const Color(0xFFD6CECA),
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
+                      width: double.infinity,
+                      height: 54,
+                      child: FilledButton(
+                          onPressed: () {
+                            if (current < 2) {
+                              setState(() => current++);
+                            } else {
+                              context
+                                  .read<AppProvider>()
+                                  .setFlow(AppFlow.login);
+                            }
+                          },
+                          style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF741018),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16))),
+                          child: Text(current == 2 ? 'ابدأ التسوق' : 'التالي',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700)))),
+                ])),
+          ]),
+        )),
+      )));
 }

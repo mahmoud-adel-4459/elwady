@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../constants/colors.dart';
 
 /// Typography System based strictly on Figma Tokens with Cairo Font
 class AppTheme {
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.cairoTextTheme();
+    final baseTextTheme =
+        ThemeData.light().textTheme.apply(fontFamily: 'Cairo');
 
     return ThemeData(
       useMaterial3: true,
@@ -17,66 +17,73 @@ class AppTheme {
         surface: AppColors.surface,
         error: AppColors.error,
       ),
-      fontFamily: GoogleFonts.cairo().fontFamily,
+      fontFamily: 'Cairo',
+      fontFamilyFallback: const [
+        'Noto Color Emoji',
+        'Segoe UI Emoji',
+        'Apple Color Emoji'
+      ],
+      dividerTheme:
+          const DividerThemeData(color: Color(0xFFEEE8E8), thickness: 1),
       textTheme: baseTextTheme.copyWith(
         // Display — 32px Bold
-        displayLarge: GoogleFonts.cairo(
+        displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
           height: 1.25,
         ),
         // H1 — 28px SemiBold
-        headlineLarge: GoogleFonts.cairo(
+        headlineLarge: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.3,
         ),
         // H2 — 24px SemiBold
-        headlineMedium: GoogleFonts.cairo(
+        headlineMedium: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.3,
         ),
         // H3 — 20px SemiBold
-        headlineSmall: GoogleFonts.cairo(
+        headlineSmall: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.35,
         ),
         // Section — 18px SemiBold
-        titleLarge: GoogleFonts.cairo(
+        titleLarge: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.4,
         ),
         // Body Large — 16px Regular
-        bodyLarge: GoogleFonts.cairo(
+        bodyLarge: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.5,
         ),
         // Body Regular — 14px Regular
-        bodyMedium: GoogleFonts.cairo(
+        bodyMedium: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: AppColors.textSecondary,
+          color: AppColors.textPrimary,
           height: 1.5,
         ),
         // Body Small — 12px Regular
-        bodySmall: GoogleFonts.cairo(
+        bodySmall: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: AppColors.textMuted,
           height: 1.4,
         ),
         // Label Large (Buttons)
-        labelLarge: GoogleFonts.cairo(
+        labelLarge: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -84,6 +91,7 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: AppColors.textPrimary),
@@ -92,14 +100,14 @@ class AppTheme {
   }
 
   // Custom Specific Typo Styles
-  static TextStyle priceLarge = GoogleFonts.cairo(
+  static TextStyle priceLarge = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w800,
     color: AppColors.deerBlood500,
     letterSpacing: -0.3,
   );
 
-  static TextStyle badgeText = GoogleFonts.cairo(
+  static TextStyle badgeText = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
     color: AppColors.deerBlood500,

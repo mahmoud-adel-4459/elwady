@@ -29,7 +29,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Regenerate Android Skeleton & Build APK
+      - name: Regenerate Android Skeleton & Build Official Release APK
         run: |
           if [ -f "pubspec.yaml" ]; then
             TARGET_DIR="."
@@ -41,10 +41,30 @@ jobs:
           rm -rf android
           flutter create . --platforms=android --org=com.alwady --project-name=alwady_app
           
+          # Set internet permission and Arabic title
           sed -i 's/<application/<uses-permission android:name="android.permission.INTERNET"\/>\n    <application/' android/app/src/main/AndroidManifest.xml
           sed -i 's/android:label="alwady_app"/android:label="الوادي للذبائح"/' android/app/src/main/AndroidManifest.xml
+
+          # Generate official Release Keystore
+          keytool -genkey -v -keystore android/app/release.jks -alias alwady -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass alwady2026 -keypass alwady2026 \
+            -dname "CN=Al-Wady Butchery, OU=Development, O=Al-Wady, L=Riyadh, ST=Riyadh, C=SA"
+
+          # Configure release signing in android/app/build.gradle
+          node -e "
+            const fs = require('fs');
+            const file = 'android/app/build.gradle';
+            let s = fs.readFileSync(file, 'utf8');
+            const signing = '\n    signingConfigs {\n        release {\n            keyAlias \"alwady\"\n            keyPassword \"alwady2026\"\n            storeFile file(\"release.jks\")\n            storePassword \"alwady2026\"\n        }\n    }\n';
+            s = s.replace('buildTypes {', signing + '    buildTypes {');
+            s = s.replace(/signingConfig\s*=?\s*signingConfigs\.debug/g, 'signingConfig = signingConfigs.release');
+            fs.writeFileSync(file, s);
+          "
           
           flutter pub get
+          dart run tool/prepare_launcher_icon.dart
+          dart run flutter_launcher_icons
+          dart run tool/prepare_native_launch.dart
           flutter build apk --release
           
           mkdir -p $GITHUB_WORKSPACE/apk_output

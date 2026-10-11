@@ -1,390 +1,301 @@
+import '../core/utils/arabic_numbers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/colors.dart';
-import '../core/utils/arabic_numbers.dart';
+import '../widgets/store_widgets.dart';
 import '../models/product.dart';
 import '../providers/app_provider.dart';
-import 'product_details_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+// Reference: the mobile layout used by App.jsx and HomeSections.jsx.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final categories = ScrollController();
+  @override
+  void dispose() {
+    categories.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
-    final products = provider.products;
-    final categories = provider.categories;
-
+    final app = context.watch<AppProvider>();
+    final listing = app.currentCategory != 'all' || app.searchQuery.isNotEmpty;
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          children: [
-            const Icon(Icons.location_on, color: AppColors.deerBlood500, size: 20),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'التوصيل إلى (المنزل)',
-                    style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    provider.deliveryAddress,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Search Bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFEEE8E8)),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x05000000), blurRadius: 8, offset: Offset(0, 2)),
-                  ],
-                ),
-                child: TextField(
-                  onChanged: (val) => provider.setSearch(val),
-                  decoration: const InputDecoration(
-                    hintText: 'ابحث عن لحوم، ذبائح، أو تقطيع…',
-                    hintStyle: TextStyle(fontSize: 13, color: AppColors.textMuted),
-                    prefixIcon: Icon(Icons.search, color: Color(0xFF3C3C43)),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ),
-
-            // 2. Hero Banner
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  height: 160,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: AppColors.deerBlood900,
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
+        body: SafeArea(
+            bottom: false,
+            child: Column(children: [
+              const StoreHeader(),
+              Expanded(
+                  child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 110),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        'assets/images/hero_banner.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox(),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerRight,
-                            end: Alignment.centerLeft,
-                            colors: [
-                              AppColors.deerBlood900.withOpacity(0.92),
-                              AppColors.deerBlood700.withOpacity(0.65),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                '🔥 عروض نهاية الأسبوع',
-                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'ذبائح بلدية طازجة ١٠٠٪',
-                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'ذبح يومي وتوصيل مبرد في نفس اليوم',
-                              style: TextStyle(color: Colors.white70, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // 3. Features Row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  _buildFeatureTile(Icons.verified, 'إشراف بيطري'),
-                  const SizedBox(width: 8),
-                  _buildFeatureTile(Icons.ac_unit, 'توصيل مبرد'),
-                  const SizedBox(width: 8),
-                  _buildFeatureTile(Icons.restaurant, 'ذبح يومي'),
-                ],
-              ),
-            ),
-
-            // 4. Categories Scroller
-            _buildSectionHeader(
-              context,
-              title: 'الأقسام',
-              onTapAll: () => provider.setTab(1),
-            ),
-            SizedBox(
-              height: 44,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (ctx, i) {
-                  final cat = categories[i];
-                  final isSelected = cat.id == provider.currentCategory;
-                  return ChoiceChip(
-                    label: Text('${cat.icon} ${cat.name}'),
-                    selected: isSelected,
-                    selectedColor: AppColors.deerBlood500,
-                    backgroundColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    side: BorderSide(color: isSelected ? AppColors.deerBlood500 : const Color(0xFFECE6E4)),
-                    onSelected: (_) => provider.setCategory(cat.id),
-                  );
-                },
-              ),
-            ),
-
-            // 5. Most Popular Section
-            _buildSectionHeader(
-              context,
-              title: 'الأكثر طلباً',
-              onTapAll: () => provider.setCategory('fresh_cuts'),
-            ),
-            SizedBox(
-              height: 275,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: products.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 14),
-                itemBuilder: (ctx, i) {
-                  return _buildProductCard(context, products[i]);
-                },
-              ),
-            ),
-
-            // 6. Carcasses Banner
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.deerBlood50,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.deerBlood100),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.stars, color: AppColors.deerBlood500, size: 36),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('ضمان ذهبي على الذبائح', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.deerBlood900)),
-                          Text('إذا لم تنال الذبيحة رضاك يتم استبدالها أو استرجاع المبلغ فوراً.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                      const StoreSearch(),
+                      if (listing) ...[
+                        Row(children: [
+                          IconButton(
+                              tooltip: 'رجوع',
+                              onPressed: () {
+                                app.setCategory('all');
+                                app.setSearch('');
+                              },
+                              icon: const Icon(Icons.arrow_forward)),
+                          Expanded(
+                              child: Text(
+                                  app.searchQuery.isNotEmpty
+                                      ? 'نتائج البحث'
+                                      : categoryCards
+                                          .firstWhere((c) =>
+                                              c.id == app.currentCategory)
+                                          .name,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800))),
+                        ]),
+                        HomeHero(onShop: () => app.setCategory('offers')),
+                        const SizedBox(height: 16),
+                        Text(
+                            '${ArabicNumbers.convert(app.filteredProducts.length)} منتجات متاحة',
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.textMuted)),
+                        const SizedBox(height: 10),
+                        StoreProductGrid(products: app.filteredProducts),
+                      ] else ...[
+                        const SizedBox(height: 22),
+                        HomeHero(onShop: () => app.setCategory('offers')),
+                        const SizedBox(height: 18),
+                        Row(children: [
+                          _feature('جودة مضمونة', 'feature-quality.png'),
+                          const SizedBox(width: 10),
+                          _feature('ذبح يومي', 'feature-daily.png'),
+                          const SizedBox(width: 10),
+                          _feature('توصيل سريع', 'feature-delivery.png'),
+                        ]),
+                        _section('الأقسام', () => app.setTab(1)),
+                        SizedBox(
+                            height: 124,
+                            child: ListView.separated(
+                              controller: categories,
+                              scrollDirection: Axis.horizontal,
+                              itemCount: categoryCards
+                                  .where((c) => c.id != 'extras')
+                                  .length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 12),
+                              itemBuilder: (context, i) {
+                                final cat = categoryCards
+                                    .where((c) => c.id != 'extras')
+                                    .elementAt(i);
+                                return SizedBox(
+                                    width: 92,
+                                    child: InkWell(
+                                        onTap: () => app.setCategory(cat.id),
+                                        child: Column(children: [
+                                          ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
+                                              child: Image.asset(cat.image!,
+                                                  width: 92,
+                                                  height: 88,
+                                                  alignment:
+                                                      categoryImageAlignment(
+                                                          cat.id),
+                                                  fit: BoxFit.cover)),
+                                          const SizedBox(height: 6),
+                                          Text(cat.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.visible,
+                                              softWrap: false,
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700)),
+                                        ])));
+                              },
+                            )),
+                        const SizedBox(height: 8),
+                        _CarouselControls(controller: categories, step: 104),
+                        _section('الأكثر طلباً',
+                            () => app.setCategory('fresh_cuts')),
+                        _products(
+                            context,
+                            app.products
+                                .where((p) => p.id != 1)
+                                .take(4)
+                                .toList()),
+                        const SizedBox(height: 22),
+                        _promo(context, () => app.setCategory('carcasses')),
+                        _section('عروض مميزة', () => app.setCategory('offers')),
+                        _products(
+                            context, app.products.skip(1).take(4).toList()),
+                      ],
+                    ]),
+              )),
+            ])));
   }
 
-  Widget _buildFeatureTile(IconData icon, String text) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+  Widget _feature(String label, String image) => Expanded(
+          child: Container(
+        height: 88,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFECE6E4)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.deerBlood500, size: 16),
-            const SizedBox(width: 6),
-            Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, {required String title, VoidCallback? onTapAll}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          if (onTapAll != null)
-            InkWell(
-              onTap: onTapAll,
-              child: const Text('عرض الكل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.deerBlood500)),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductCard(BuildContext context, Product product) {
-    return Container(
-      width: 175,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECE6E4)),
-        boxShadow: const [
-          BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 4)),
-        ],
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image + Badge
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(17)),
-                  child: Image.asset(
-                    product.mainImage,
-                    height: 125,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 125,
-                      color: AppColors.surfaceMuted,
-                      child: const Icon(Icons.restaurant, color: Colors.grey),
-                    ),
-                  ),
-                ),
-                if (product.badge != null)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.deerBlood500,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        product.badge!,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
+            color: const Color(0xFFEFEDED),
+            borderRadius: BorderRadius.circular(16)),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Image.asset('assets/images/$image',
+              width: 40, height: 40, fit: BoxFit.contain),
+          const SizedBox(height: 8),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary)),
+        ]),
+      ));
+  Widget _section(String title, VoidCallback onAll) => Padding(
+        padding: const EdgeInsets.only(top: 26, bottom: 12),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          InkWell(
+              onTap: onAll,
+              child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Text('الكل',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textMuted)))),
+        ]),
+      );
+  Widget _products(BuildContext context, List<Product> products) =>
+      _ProductCarousel(products: products);
+  Widget _promo(BuildContext context, VoidCallback onOrder) => Container(
+        height: (MediaQuery.sizeOf(context).width * .46).clamp(170.0, 200.0),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+            gradient: const LinearGradient(
+                colors: [Color(0xFF111110), Color(0xFF191817)]),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFF302B25))),
+        child: Row(children: [
+          Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    product.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${ArabicNumbers.convert(product.price.toInt())} ج.م',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.deerBlood500),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.deerBlood50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.add, size: 16, color: AppColors.deerBlood500),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                const Text('عروض الوادي',
+                    style: TextStyle(fontSize: 13, color: Color(0xFFDCA878))),
+                const SizedBox(height: 8),
+                const Expanded(
+                    child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('اطلب ذبيحة كاملة\nووفر 15٪',
+                                style: TextStyle(
+                                    fontSize: 24,
+                                    height: 1.15,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFFF9EBDF)))))),
+                const SizedBox(height: 10),
+                SizedBox(
+                    height: 34,
+                    child: FilledButton(
+                        onPressed: onOrder,
+                        style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.deerBlood500,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 5),
+                            minimumSize: Size.zero,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14))),
+                        child: const Text('اطلب الآن',
+                            style: TextStyle(fontSize: 15)))),
+              ])),
+          const SizedBox(width: 16),
+          ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset('assets/images/steak.jpg',
+                  width: (MediaQuery.sizeOf(context).width - 84) * .43,
+                  height: double.infinity,
+                  fit: BoxFit.cover)),
+        ]),
+      );
+}
+
+class _CarouselControls extends StatelessWidget {
+  final ScrollController controller;
+  final double step;
+  const _CarouselControls({required this.controller, required this.step});
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) =>
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            for (final direction in [-1, 1]) ...[
+              SizedBox(
+                  width: 34,
+                  height: 34,
+                  child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: const CircleBorder(),
+                          side: const BorderSide(color: Color(0xFFEEE8E8))),
+                      onPressed: (!controller.hasClients ||
+                                  !controller.position.hasContentDimensions
+                              ? direction > 0
+                              : (direction < 0
+                                  ? controller.offset > 2
+                                  : controller.offset <
+                                      controller.position.maxScrollExtent - 2))
+                          ? () => controller.animateTo(
+                              (controller.offset + step * direction).clamp(
+                                  0.0, controller.position.maxScrollExtent),
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut)
+                          : null,
+                      child: Directionality(
+                          textDirection: TextDirection.ltr,
+                          child:
+                              Icon(direction < 0 ? Icons.chevron_right : Icons.chevron_left, size: 18)))),
+              if (direction < 0) const SizedBox(width: 8),
+            ]
+          ]));
+}
+
+class _ProductCarousel extends StatefulWidget {
+  final List<Product> products;
+  const _ProductCarousel({required this.products});
+  @override
+  State<_ProductCarousel> createState() => _ProductCarouselState();
+}
+
+class _ProductCarouselState extends State<_ProductCarousel> {
+  final controller = ScrollController();
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) => Column(children: [
+        SizedBox(
+            height: 340 * MediaQuery.textScalerOf(context).scale(1),
+            child: ListView.separated(
+                controller: controller,
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) => SizedBox(
+                    width: 224,
+                    child: StoreProductCard(product: widget.products[i])))),
+        const SizedBox(height: 10),
+        _CarouselControls(controller: controller, step: 236),
+      ]);
 }

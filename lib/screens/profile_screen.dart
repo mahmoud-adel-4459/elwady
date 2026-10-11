@@ -1,111 +1,220 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../core/constants/colors.dart';
+import '../core/utils/arabic_numbers.dart';
 import '../providers/app_provider.dart';
+import 'account_screens.dart';
+import 'notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
-
+    final app = context.watch<AppProvider>();
+    void show(String title, Widget child) => Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+            builder: (_) => Scaffold(
+                appBar: AppBar(title: Text(title)),
+                body: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20), child: child))));
+    void info(String title, String text) => show(title, Text(text));
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('الملف الشخصي', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // User Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFECE6E4)),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundColor: AppColors.deerBlood50,
-                    child: Text(
-                      provider.customerName.isNotEmpty ? provider.customerName[0] : 'ع',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.deerBlood500),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
+        body: SafeArea(
+            bottom: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 110),
+              child: Column(children: [
+                Container(
+                    constraints: const BoxConstraints(minHeight: 76),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: const LinearGradient(colors: [
+                          Color(0xFF760F18),
+                          Color(0xFF97101A),
+                          Color(0xFFCC1724)
+                        ])),
+                    child: Row(children: [
+                      CircleAvatar(
+                          radius: 22,
+                          backgroundColor: const Color(0xFFE64E54),
+                          child: Text(
+                              app.customerName
+                                  .trim()
+                                  .split(RegExp(r'\s+'))
+                                  .where((s) => s.isNotEmpty)
+                                  .take(2)
+                                  .map((s) => s[0])
+                                  .join(),
+                              style: const TextStyle(
+                                  fontSize: 24, color: Colors.white))),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(app.customerName,
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white)),
+                            Text(app.customerPhone,
+                                textDirection: TextDirection.ltr,
+                                style: const TextStyle(
+                                    fontSize: 12, color: Color(0xD9FFFFFF))),
+                          ])),
+                    ])),
+                const SizedBox(height: 14),
+                _group([
+                  _item(
+                      Icons.person_outline,
+                      'المعلومات الشخصية',
+                      'الاسم، البريد الإلكتروني، الهاتف',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) => const PersonalInfoScreen()))),
+                  _item(
+                      Icons.location_on_outlined,
+                      'العناوين',
+                      '${ArabicNumbers.convert(app.addresses.length)} عناوين محفوظة',
+                      () => showAddresses(context)),
+                  _item(Icons.shopping_basket_outlined, 'طلباتي',
+                      'متابعة الطلبات', () => app.setTab(3)),
+                  _item(
+                      Icons.favorite_border,
+                      'قائمة المفضلة',
+                      '${ArabicNumbers.convert(app.wishlist.length)} عنصر محفوظ',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) => const FavoritesScreen()))),
+                  _item(Icons.credit_card, 'طرق الدفع', 'بطاقة واحدة مضافة',
+                      () {},
+                      last: true),
+                ]),
+                const SizedBox(height: 14),
+                _group([
+                  _item(
+                      Icons.notifications_none,
+                      'الإشعارات',
+                      'دفع، بريد إلكتروني، رسائل نصية',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) => const NotificationsScreen()))),
+                  _item(
+                      Icons.headset_mic_outlined,
+                      'المساعدة والدعم',
+                      'دردشة ٢٤/٧ معنا',
+                      () =>
+                          info('المساعدة والدعم', 'خدمة العملاء والدعم الفني')),
+                  _item(Icons.logout, 'تسجيل الخروج', null,
+                      () => app.setFlow(AppFlow.login),
+                      last: true),
+                ]),
+                const SizedBox(height: 14),
+                Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: const LinearGradient(
+                            colors: [Color(0xFFD0F4DC), Color(0xFFBBEFCE)])),
+                    child: Row(children: [
+                      const CircleAvatar(
+                          radius: 17,
+                          backgroundColor: Color(0xFF26CE50),
+                          child:
+                              Icon(Icons.phone, size: 19, color: Colors.white)),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text('تواصل معنا عبر الواتس',
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w800)),
+                            Text(
+                                'تواصل معنا في أي وقت عبر الدردشة المتاحة ٢٤ ساعة',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 11, color: Color(0xFF6E8173))),
+                          ])),
+                      const Icon(Icons.chevron_right, size: 16),
+                    ])),
+                const SizedBox(height: 16),
+                const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _Social(network: 'snapchat'),
+                      _Social(network: 'facebook'),
+                      _Social(network: 'tiktok'),
+                    ]),
+                const SizedBox(height: 16),
+                const Text('رقم السجل التجاري: 123456789\nإصدار التطبيق: 1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 10, height: 1.9, color: AppColors.textMuted)),
+              ]),
+            )));
+  }
+
+  Widget _group(List<Widget> items) => Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEE8E8))),
+      child: Column(children: items));
+  Widget _item(IconData icon, String title, String? sub, VoidCallback onTap,
+          {bool last = false}) =>
+      InkWell(
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 65),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+                border: last
+                    ? null
+                    : const Border(
+                        bottom: BorderSide(color: Color(0xFFF5F2F2)))),
+            child: Row(children: [
+              CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFFF3E9EA),
+                  child: Icon(icon, size: 18, color: const Color(0xFF30272A))),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          provider.customerName,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          provider.phoneForOtp,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          provider.customerCity,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    if (sub != null)
+                      Text(sub,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textMuted)),
+                  ])),
+              const Icon(Icons.chevron_right,
+                  size: 16, color: AppColors.textMuted),
+            ]),
+          ));
+}
 
-            // Profile Options
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFECE6E4)),
-              ),
-              child: Column(
-                children: [
-                  _buildTile(Icons.location_on_outlined, 'عناويني المسجلة', provider.deliveryAddress),
-                  const Divider(height: 1),
-                  _buildTile(Icons.favorite_outline, 'المفضلة', '${provider.wishlist.length} منتجات'),
-                  const Divider(height: 1),
-                  _buildTile(Icons.phone_outlined, 'خدمة العملاء والدعم الفني', 'متاح 24/7 عبر واتساب'),
-                  const Divider(height: 1),
-                  _buildTile(Icons.policy_outlined, 'الشروط والأحكام وسياسة الذبح', 'معتمدة'),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: AppColors.error),
-                    title: const Text('تسجيل الخروج', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 14)),
-                    onTap: () {
-                      provider.setFlow(AppFlow.login);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTile(IconData icon, String title, String subtitle) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.deerBlood500, size: 22),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-      trailing: const Icon(Icons.arrow_back_ios, size: 14, color: AppColors.textMuted),
-      onTap: () {},
-    );
-  }
+class _Social extends StatelessWidget {
+  final String network;
+  const _Social({required this.network});
+  @override
+  Widget build(BuildContext context) => Column(children: [
+        SvgPicture.asset('assets/images/social_$network.svg',
+            width: 24, height: 24),
+        const SizedBox(height: 4),
+        const Text('@El-Wady',
+            style: TextStyle(fontSize: 11, color: AppColors.textMuted))
+      ]);
 }

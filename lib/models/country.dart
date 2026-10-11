@@ -13,12 +13,21 @@ class Country {
 }
 
 const List<Country> kArabCountries = [
-  Country(code: 'SA', name: 'المملكة العربية السعودية', dial: '+966', placeholder: '50 123 4567'),
-  Country(code: 'AE', name: 'الإمارات العربية المتحدة', dial: '+971', placeholder: '50 123 4567'),
-  Country(code: 'KW', name: 'الكويت', dial: '+965', placeholder: '50 123 456'),
-  Country(code: 'QA', name: 'قطر', dial: '+974', placeholder: '33 123 456'),
-  Country(code: 'BH', name: 'البحرين', dial: '+973', placeholder: '36 123 456'),
-  Country(code: 'OM', name: 'سلطنة عمان', dial: '+968', placeholder: '91 123 456'),
-  Country(code: 'EG', name: 'جمهورية مصر العربية', dial: '+20', placeholder: '010 1234 5678'),
-  Country(code: 'JO', name: 'المملكة الأردنية الهاشمية', dial: '+962', placeholder: '79 123 4567'),
+  Country(
+      code: 'SA',
+      name: 'المملكة العربية السعودية',
+      dial: '+966',
+      placeholder: '5X XXX XXXX'),
+  Country(
+      code: 'AE',
+      name: 'الإمارات العربية المتحدة',
+      dial: '+971',
+      placeholder: '5X XXX XXXX'),
+  Country(code: 'KW', name: 'الكويت', dial: '+965', placeholder: '9X XXX XXX'),
+  Country(code: 'QA', name: 'قطر', dial: '+974', placeholder: '5X XXX XXX'),
+  Country(code: 'BH', name: 'البحرين', dial: '+973', placeholder: '3X XXX XXX'),
+  Country(
+      code: 'OM', name: 'سلطنة عمان', dial: '+968', placeholder: '9X XXX XXX'),
+  Country(code: 'EG', name: 'مصر', dial: '+20', placeholder: '1X XXXX XXXX'),
+  Country(code: 'JO', name: 'الأردن', dial: '+962', placeholder: '7X XXX XXXX'),
 ];

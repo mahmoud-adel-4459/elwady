@@ -9,6 +9,7 @@ import 'screens/login_screen.dart';
 import 'screens/otp_screen.dart';
 import 'screens/profile_setup_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/location_permission_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,8 @@ class AlWadyApp extends StatelessWidget {
               return const OtpScreen();
             case AppFlow.profileSetup:
               return const ProfileSetupScreen();
+            case AppFlow.locationPermission:
+              return const LocationPermissionScreen();
             case AppFlow.main:
               return const MainNavigationScreen();
           }

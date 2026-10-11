@@ -39,20 +39,20 @@ class AppColors {
   static const Color dark900 = Color(0xFF200406);
 
   // Neutral Background & Surface Tokens
-  static const Color background = Color(0xFFFAF7F5);
+  static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF5F2F0);
   static const Color border = Color(0xFFECE6E4);
   static const Color borderSubtle = Color(0xFFE2DCDC);
 
   // Text Contrast Tokens
-  static const Color textPrimary = Color(0xFF1E1B1B);
-  static const Color textSecondary = Color(0xFF605754);
-  static const Color textMuted = Color(0xFF8A817C);
+  static const Color textPrimary = Color(0xFF211D1D);
+  static const Color textSecondary = Color(0xFF3C3C43);
+  static const Color textMuted = Color(0xFF77706D);
 
   // Semantic
   static const Color success = Color(0xFF256029);
   static const Color successBg = Color(0xFFF5F9F5);
   static const Color error = Color(0xFFC43D44);
-  static const Color gold = Color(0xFFD97706);
+  static const Color gold = Color(0xFFFE9A00);
 }
