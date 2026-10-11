@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="100%" height="100%" fill="none">
+  <!-- Group with exact crossed angle and proportions matching user's logo -->
+  <g id="crossed-cleavers">
+    <!-- ================= Cleaver 1 (Upper Left / Vertical-slanted) ================= -->
+    <g transform="rotate(-16 160 220)">
+      <!-- Handle -->
+      <path 
+        d="M142 165 L142 330 C142 338 148 344 156 344 L170 344 C178 344 184 338 184 330 L184 165 Z" 
+        fill="#3A3A3E" 
+        stroke="#111111" 
+        stroke-width="5" 
+      />
+      <!-- Handle Rivets / Pins -->
+      <circle cx="163" cy="205" r="5" fill="#111111" />
+      <circle cx="163" cy="265" r="5" fill="#111111" />
+      <circle cx="163" cy="315" r="5" fill="#111111" />
+
+      <!-- Bolster Collar -->
+      <path 
+        d="M138 165 C138 156 188 156 188 165 Z" 
+        fill="#2A2A2E" 
+        stroke="#111111" 
+        stroke-width="4" 
+      />
+
+      <!-- Blade -->
+      <!-- Left side is cutting edge, top is spine with hole on top-right -->
+      <path 
+        d="M136 160 L95 152 C90 151 86 147 86 142 L132 18 C135 12 142 8 149 10 L215 26 C223 28 228 35 227 43 L192 152 C190 157 186 160 181 160 Z" 
+        fill="#3A3A3E" 
+        stroke="#111111" 
+        stroke-width="6" 
+        stroke-linejoin="round"
+      />
+
+      <!-- Blade Sharpened Edge Bevel Line -->
+      <path 
+        d="M93 146 L137 24" 
+        stroke="#111111" 
+        stroke-width="5" 
+        stroke-linecap="round" 
+      />
+
+      <!-- Blade Hole -->
+      <circle cx="206" cy="48" r="8" fill="#111111" />
+    </g>
+
+    <!-- ================= Cleaver 2 (Lower Right / Horizontal-slanted) ================= -->
+    <g transform="rotate(74 160 220)">
+      <!-- Handle -->
+      <path 
+        d="M142 165 L142 330 C142 338 148 344 156 344 L170 344 C178 344 184 338 184 330 L184 165 Z" 
+        fill="#3A3A3E" 
+        stroke="#111111" 
+        stroke-width="5" 
+      />
+      <!-- Handle Rivets / Pins -->
+      <circle cx="163" cy="205" r="5" fill="#111111" />
+      <circle cx="163" cy="265" r="5" fill="#111111" />
+      <circle cx="163" cy="315" r="5" fill="#111111" />
+
+      <!-- Bolster Collar -->
+      <path 
+        d="M138 165 C138 156 188 156 188 165 Z" 
+        fill="#2A2A2E" 
+        stroke="#111111" 
+        stroke-width="4" 
+      />
+
+      <!-- Blade -->
+      <path 
+        d="M136 160 L95 152 C90 151 86 147 86 142 L132 18 C135 12 142 8 149 10 L215 26 C223 28 228 35 227 43 L192 152 C190 157 186 160 181 160 Z" 
+        fill="#3A3A3E" 
+        stroke="#111111" 
+        stroke-width="6" 
+        stroke-linejoin="round"
+      />
+
+      <!-- Blade Sharpened Edge Bevel Line -->
+      <path 
+        d="M93 146 L137 24" 
+        stroke="#111111" 
+        stroke-width="5" 
+        stroke-linecap="round" 
+      />
+
+      <!-- Blade Hole -->
+      <circle cx="206" cy="48" r="8" fill="#111111" />
+    </g>
+  </g>
+</svg>
