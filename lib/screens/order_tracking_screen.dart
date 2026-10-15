@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/colors.dart';
 import '../widgets/design_widgets.dart';
 import 'cart_screen.dart' show bill;
+import 'flow_screens.dart';
 
 class OrderTrackingScreen extends StatelessWidget {
   const OrderTrackingScreen({super.key});
@@ -179,5 +180,10 @@ class OrderTrackingScreen extends StatelessWidget {
           child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: PrimaryButton(
-                  label: 'تواصل مع الدعم', height: 52, onPressed: () {}))));
+                  label: 'تواصل مع الدعم',
+                  height: 52,
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                          builder: (_) => const SupportScreen()))))));
 }

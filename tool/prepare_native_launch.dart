@@ -15,9 +15,17 @@ void main() {
   }.entries) {
     final directory = Directory('$root/drawable-${entry.key}')
       ..createSync(recursive: true);
-    final resized = image.copyResize(logo, height: (180 * entry.value).round());
+    // Square 288dp canvas with the logo centered inside the safe zone, so the
+    // Android 12+ circular splash mask never crops it.
+    final side = (288 * entry.value).round();
+    final resized = image.copyResize(logo,
+        height: (120 * entry.value).round(),
+        interpolation: image.Interpolation.cubic);
+    final canvas = image.Image(width: side, height: side, numChannels: 4);
+    image.compositeImage(canvas, resized,
+        dstX: (side - resized.width) ~/ 2, dstY: (side - resized.height) ~/ 2);
     File('${directory.path}/launch_logo.png')
-        .writeAsBytesSync(image.encodePng(resized));
+        .writeAsBytesSync(image.encodePng(canvas));
   }
   void write(String path, String content) {
     final file = File('$root/$path');
@@ -34,6 +42,23 @@ void main() {
   for (final directory in ['drawable', 'drawable-v21']) {
     write('$directory/launch_background.xml', background);
   }
+  for (final entry in {
+    'LaunchImage.png': 1.0,
+    'LaunchImage@2x.png': 2.0,
+    'LaunchImage@3x.png': 3.0,
+  }.entries) {
+    final scale = entry.value;
+    final side = (320 * scale).round();
+    final resized = image.copyResize(logo,
+        height: (120 * scale).round(),
+        interpolation: image.Interpolation.cubic);
+    final canvas = image.Image(width: side, height: side, numChannels: 4);
+    image.compositeImage(canvas, resized,
+        dstX: (side - resized.width) ~/ 2, dstY: (side - resized.height) ~/ 2);
+    File('ios/Runner/Assets.xcassets/LaunchImage.imageset/${entry.key}')
+        .writeAsBytesSync(image.encodePng(canvas));
+  }
+
   for (final directory in [
     'values',
     'values-night',
@@ -47,7 +72,7 @@ void main() {
     <item name="android:windowBackground">@drawable/launch_background</item>
     <item name="android:statusBarColor">#741018</item>
     <item name="android:windowLightStatusBar">false</item>
-    ${modern ? '<item name="android:windowSplashScreenBackground">#741018</item><item name="android:windowSplashScreenAnimatedIcon">@drawable/launch_logo</item><item name="android:windowSplashScreenIconBackgroundColor">#741018</item>' : ''}
+    ${modern ? '<item name="android:windowSplashScreenBackground">#741018</item><item name="android:windowSplashScreenAnimatedIcon">@drawable/launch_logo</item>' : ''}
   </style>
   <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
     <item name="android:windowBackground">#FFFFFF</item>

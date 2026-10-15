@@ -1,0 +1,59 @@
+name: Build Flutter iOS
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS Release (unsigned)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.x'
+          channel: stable
+          cache: true
+
+      - name: Prepare assets and build iOS
+        run: |
+          if [ -f "pubspec.yaml" ]; then
+            TARGET_DIR="."
+          elif [ -d "alwady_flutter" ]; then
+            TARGET_DIR="./alwady_flutter"
+          fi
+
+          cd "$TARGET_DIR"
+
+          if [ ! -d ios ]; then
+            flutter create . --platforms=ios --org=com.alwady --project-name=alwady_app
+          fi
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName الوادي للذبائح" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleName الوادي للذبائح" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'نستخدم موقعك لتحديد عنوان التوصيل وتقديم خدمة أسرع.'" ios/Runner/Info.plist 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Set :NSLocationWhenInUseUsageDescription 'نستخدم موقعك لتحديد عنوان التوصيل وتقديم خدمة أسرع.'" ios/Runner/Info.plist
+
+          flutter pub get
+          dart run tool/prepare_launcher_icon.dart
+          dart run flutter_launcher_icons
+          dart run tool/prepare_native_launch.dart
+          flutter build ios --release --no-codesign
+
+          mkdir -p "$GITHUB_WORKSPACE/ios_output"
+          ditto -c -k --sequesterRsrc --keepParent build/ios/iphoneos/Runner.app "$GITHUB_WORKSPACE/ios_output/alwady-ios-unsigned.zip"
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alwady-ios-unsigned
+          path: ios_output/alwady-ios-unsigned.zip
+          retention-days: 14

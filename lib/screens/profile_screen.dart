@@ -6,20 +6,15 @@ import '../core/utils/arabic_numbers.dart';
 import '../providers/app_provider.dart';
 import 'account_screens.dart';
 import 'notifications_screen.dart';
+import 'flow_screens.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
-    void show(String title, Widget child) => Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-            builder: (_) => Scaffold(
-                appBar: AppBar(title: Text(title)),
-                body: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20), child: child))));
-    void info(String title, String text) => show(title, Text(text));
+    void openSupport() => Navigator.push(context,
+        MaterialPageRoute<void>(builder: (_) => const SupportScreen()));
     return Scaffold(
         body: SafeArea(
             bottom: false,
@@ -92,8 +87,13 @@ class ProfileScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute<void>(
                               builder: (_) => const FavoritesScreen()))),
-                  _item(Icons.credit_card, 'طرق الدفع', 'بطاقة واحدة مضافة',
-                      () {},
+                  _item(Icons.credit_card, 'طرق الدفع', app.cards.isEmpty
+                          ? 'لا توجد بطاقات محفوظة'
+                          : '${ArabicNumbers.convert(app.cards.length)} بطاقة محفوظة',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) => const PaymentMethodsScreen())),
                       last: true),
                 ]),
                 const SizedBox(height: 14),
@@ -110,14 +110,26 @@ class ProfileScreen extends StatelessWidget {
                       Icons.headset_mic_outlined,
                       'المساعدة والدعم',
                       'دردشة ٢٤/٧ معنا',
-                      () =>
-                          info('المساعدة والدعم', 'خدمة العملاء والدعم الفني')),
+                      openSupport),
                   _item(Icons.logout, 'تسجيل الخروج', null,
-                      () => app.setFlow(AppFlow.login),
+                      () async {
+                    final ok = await confirmDialog(context,
+                        title: 'تسجيل الخروج',
+                        message: 'هل تريد تسجيل الخروج من حسابك؟',
+                        confirmLabel: 'تسجيل الخروج',
+                        icon: Icons.logout);
+                    if (ok) {
+                      app.setTab(0);
+                      app.setFlow(AppFlow.login);
+                    }
+                  },
                       last: true),
                 ]),
                 const SizedBox(height: 14),
-                Container(
+                InkWell(
+                    onTap: openSupport,
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
@@ -146,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
                                     fontSize: 11, color: Color(0xFF6E8173))),
                           ])),
                       const Icon(Icons.chevron_right, size: 16),
-                    ])),
+                    ]))),
                 const SizedBox(height: 16),
                 const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,

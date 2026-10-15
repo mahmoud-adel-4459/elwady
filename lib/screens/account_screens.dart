@@ -5,6 +5,7 @@ import '../providers/app_provider.dart';
 import '../models/delivery_address.dart';
 import '../widgets/design_widgets.dart';
 import '../widgets/store_widgets.dart';
+import 'flow_screens.dart';
 
 Future<void> selectDeliveryAddress(
     BuildContext context, DeliveryAddress address) async {
@@ -154,10 +155,37 @@ class AddressesSheet extends StatelessWidget {
                                             style: const TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700))),
-                                    const Icon(Icons.edit_outlined, size: 11),
-                                    const Text(' تعديل   حذف',
-                                        style: TextStyle(fontSize: 11)),
                                   ])),
+                              const SizedBox(height: 6),
+                              Row(children: [
+                                _AddressAction(
+                                    icon: Icons.edit_outlined,
+                                    label: 'تعديل',
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute<void>(
+                                            builder: (_) => AddressFormScreen(
+                                                existing: address)))),
+                                const SizedBox(width: 16),
+                                _AddressAction(
+                                    icon: Icons.delete_outline,
+                                    label: 'حذف',
+                                    onTap: () async {
+                                      if (app.addresses.length <= 1) {
+                                        showSnack(context,
+                                            'لا يمكن حذف العنوان الوحيد المحفوظ');
+                                        return;
+                                      }
+                                      final ok = await confirmDialog(context,
+                                          title: 'حذف العنوان',
+                                          message:
+                                              'هل تريد حذف هذا العنوان من عناوينك المحفوظة؟',
+                                          confirmLabel: 'حذف',
+                                          destructive: true,
+                                          icon: Icons.delete_outline);
+                                      if (ok) app.removeAddress(address.id);
+                                    }),
+                              ]),
                             ]))),
               const SizedBox(height: 6),
               PrimaryButton(
@@ -220,7 +248,8 @@ class LocationPickerScreen extends StatelessWidget {
             bottom: 96,
             child: IconButton(
                 tooltip: 'موقعي',
-                onPressed: () {},
+                onPressed: () => showSnack(
+                    context, 'تم تحديد موقعك الحالي: حي الياسمين، الرياض'),
                 style: IconButton.styleFrom(backgroundColor: Colors.white),
                 icon: const Icon(Icons.navigation_outlined, size: 18))),
         Positioned(
@@ -230,7 +259,10 @@ class LocationPickerScreen extends StatelessWidget {
             child: PrimaryButton(
                 label: 'تأكيد المنطقة',
                 height: 52,
-                onPressed: () => Navigator.pop(context))),
+                onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute<void>(
+                        builder: (_) => const AddressFormScreen())))),
       ]));
 }
 
@@ -320,19 +352,31 @@ class PersonalInfoScreen extends StatelessWidget {
                     ltr: true),
               ])),
           const SizedBox(height: 14),
-          const DesignPanel(
+          DesignPanel(
               padding: EdgeInsets.zero,
               radius: 16,
               child: ListTile(
-                  leading: Icon(Icons.person_remove_outlined,
+                  onTap: () async {
+                    final ok = await confirmDialog(context,
+                        title: 'حذف الحساب',
+                        message:
+                            'سيتم حذف حسابك وبياناتك وطلباتك نهائياً ولا يمكن التراجع عن ذلك.',
+                        confirmLabel: 'حذف نهائي',
+                        destructive: true,
+                        icon: Icons.person_remove_outlined);
+                    if (!ok || !context.mounted) return;
+                    Navigator.of(context).popUntil((r) => r.isFirst);
+                    await app.deleteAccount();
+                  },
+                  leading: const Icon(Icons.person_remove_outlined,
                       color: AppColors.deerBlood500),
-                  title: Text('حذف الحساب',
+                  title: const Text('حذف الحساب',
                       style:
                           TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                  subtitle: Text('حذف نهائي للحساب',
+                  subtitle: const Text('حذف نهائي للحساب',
                       style:
                           TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                  trailing: Icon(Icons.chevron_left, size: 16))),
+                  trailing: const Icon(Icons.chevron_left, size: 16))),
         ])));
   }
 }
@@ -360,4 +404,26 @@ class FavoritesScreen extends StatelessWidget {
                   StoreProductGrid(products: products, showHeart: true),
                 ]))));
   }
+}
+
+class _AddressAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _AddressAction(
+      {required this.icon, required this.label, required this.onTap});
+  @override
+  Widget build(BuildContext context) => InkWell(
+      onTap: onTap,
+      child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 14, color: AppColors.deerBlood500),
+            const SizedBox(width: 4),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.deerBlood500)),
+          ])));
 }

@@ -11,11 +11,13 @@ import 'screens/profile_setup_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'screens/location_permission_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final appProvider = AppProvider();
+  await appProvider.restore();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppProvider(),
+    ChangeNotifierProvider.value(
+      value: appProvider,
       child: const AlWadyApp(),
     ),
   );
@@ -41,25 +43,33 @@ class AlWadyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       home: Consumer<AppProvider>(
-        builder: (context, provider, _) {
-          switch (provider.currentFlow) {
-            case AppFlow.splash:
-              return const SplashScreen();
-            case AppFlow.onboarding:
-              return const OnboardingScreen();
-            case AppFlow.login:
-              return const LoginScreen();
-            case AppFlow.otp:
-              return const OtpScreen();
-            case AppFlow.profileSetup:
-              return const ProfileSetupScreen();
-            case AppFlow.locationPermission:
-              return const LocationPermissionScreen();
-            case AppFlow.main:
-              return const MainNavigationScreen();
-          }
-        },
+        builder: (context, provider, _) => PopScope(
+          canPop: provider.canExitApp,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) provider.handleBack();
+          },
+          child: _buildFlow(provider),
+        ),
       ),
     );
+  }
+
+  Widget _buildFlow(AppProvider provider) {
+      switch (provider.currentFlow) {
+        case AppFlow.splash:
+          return const SplashScreen();
+        case AppFlow.onboarding:
+          return const OnboardingScreen();
+        case AppFlow.login:
+          return const LoginScreen();
+        case AppFlow.otp:
+          return const OtpScreen();
+        case AppFlow.profileSetup:
+          return const ProfileSetupScreen();
+        case AppFlow.locationPermission:
+          return const LocationPermissionScreen();
+        case AppFlow.main:
+          return const MainNavigationScreen();
+      }
   }
 }

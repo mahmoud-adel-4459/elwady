@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   provider: ^6.1.1
   flutter_svg: ^2.0.9
-  intl: ^0.19.0
+  intl: ^0.20.3
   shared_preferences: ^2.2.2
 
 dev_dependencies:
@@ -44,8 +44,9 @@ flutter:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: assets/images/launcher_icon.png
+  remove_alpha_ios: true
   background_color: '#FFFFFF'
   adaptive_icon_background: '#741018'
   adaptive_icon_foreground: assets/images/logo_alwadi_transparent_white.png

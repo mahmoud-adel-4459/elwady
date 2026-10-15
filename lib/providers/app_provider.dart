@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
 import '../models/cart_item.dart';
 import '../models/delivery_address.dart';
 import '../models/order_summary.dart';
+import '../models/order_record.dart';
 
 enum AppFlow {
   splash,
@@ -15,6 +17,77 @@ enum AppFlow {
 }
 
 class AppProvider extends ChangeNotifier {
+  SharedPreferences? _prefs;
+
+  /// Restores the last flow step, tab and profile data saved by [_persist].
+  Future<void> restore() async {
+    try {
+      final prefs = _prefs = await SharedPreferences.getInstance();
+      final flow = prefs.getInt('flow');
+      if (flow != null && flow > 0 && flow < AppFlow.values.length) {
+        _currentFlow = AppFlow.values[flow];
+      }
+      final tab = prefs.getInt('tab');
+      if (tab != null && tab >= 0 && tab < 5) _currentTab = tab;
+      _phoneForOtp = prefs.getString('phoneForOtp') ?? _phoneForOtp;
+      _isFirstTimeUser = prefs.getBool('isFirstTimeUser') ?? _isFirstTimeUser;
+      _customerName = prefs.getString('customerName') ?? _customerName;
+      _customerEmail = prefs.getString('customerEmail') ?? _customerEmail;
+      _customerCity = prefs.getString('customerCity') ?? _customerCity;
+      _customerPhone = prefs.getString('customerPhone') ?? _customerPhone;
+    } catch (_) {
+      // Fall back to the default first-launch state.
+    }
+  }
+
+  void _persist() {
+    final prefs = _prefs;
+    if (prefs == null) return;
+    prefs.setInt('flow', _currentFlow.index);
+    prefs.setInt('tab', _currentTab);
+    prefs.setString('phoneForOtp', _phoneForOtp);
+    prefs.setBool('isFirstTimeUser', _isFirstTimeUser);
+    prefs.setString('customerName', _customerName);
+    prefs.setString('customerEmail', _customerEmail);
+    prefs.setString('customerCity', _customerCity);
+    prefs.setString('customerPhone', _customerPhone);
+  }
+
+  /// True when the system back button should close the app.
+  bool get canExitApp {
+    switch (_currentFlow) {
+      case AppFlow.splash:
+      case AppFlow.onboarding:
+        return true;
+      case AppFlow.main:
+        return _currentTab == 0 && !_categoryListing;
+      default:
+        return false;
+    }
+  }
+
+  /// Steps back one screen inside the flow (call when [canExitApp] is false).
+  void handleBack() {
+    switch (_currentFlow) {
+      case AppFlow.login:
+        setFlow(AppFlow.onboarding);
+      case AppFlow.otp:
+        setFlow(AppFlow.login);
+      case AppFlow.profileSetup:
+        setFlow(AppFlow.otp);
+      case AppFlow.locationPermission:
+        setFlow(_isFirstTimeUser ? AppFlow.profileSetup : AppFlow.otp);
+      case AppFlow.main:
+        if (_categoryListing) {
+          showCategoryCards();
+        } else if (_currentTab != 0) {
+          setTab(0);
+        }
+      default:
+        break;
+    }
+  }
+
   AppFlow _currentFlow = AppFlow.splash;
   AppFlow get currentFlow => _currentFlow;
 
@@ -74,6 +147,18 @@ class AppProvider extends ChangeNotifier {
   bool get notificationsRead => _notificationsRead;
   int get unreadNotifications => _notificationsRead ? 0 : 3;
   OrderSummary? completedOrder;
+
+  // Orders placed in this session (newest first)
+  final List<OrderRecord> orders = [];
+
+  // Saved payment cards
+  final List<SavedCard> cards = [
+    const SavedCard(
+        id: 'card_default',
+        brand: 'Mastercard',
+        last4: '4242',
+        holder: 'أحمد رمضان'),
+  ];
 
   // Wishlist
   final Set<int> _wishlist = {1, 3};
@@ -232,11 +317,13 @@ class AppProvider extends ChangeNotifier {
   // Flow Navigation Methods
   void setFlow(AppFlow flow) {
     _currentFlow = flow;
+    _persist();
     notifyListeners();
   }
 
   void setTab(int index) {
     _currentTab = index;
+    _persist();
     notifyListeners();
   }
 
@@ -269,6 +356,7 @@ class AppProvider extends ChangeNotifier {
     if (name != null) _customerName = name;
     if (email != null) _customerEmail = email;
     if (phone != null) _customerPhone = phone;
+    _persist();
     notifyListeners();
   }
 
@@ -277,9 +365,108 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void confirmOrder(OrderSummary order) {
+  void confirmOrder(OrderSummary order, {String paymentMethod = 'cash'}) {
     completedOrder = order;
+    orders.insert(
+        0,
+        OrderRecord(
+            number: 5413 + orders.length,
+            items: List.of(_cartItems),
+            summary: order,
+            paymentMethod: paymentMethod,
+            createdAt: DateTime.now()));
     _cartItems.clear();
+    notifyListeners();
+  }
+
+  void markOrderDelivered(OrderRecord order) {
+    order.delivered = true;
+    notifyListeners();
+  }
+
+  void rateOrder(OrderRecord order, int rating) {
+    order.rating = rating;
+    notifyListeners();
+  }
+
+  /// Copies the items of a previous order back into the cart.
+  void reorder(Iterable<CartItem> items) {
+    for (final i in items) {
+      _cartItems.insert(
+          0,
+          CartItem(
+              product: i.product,
+              weightLabel: i.weightLabel,
+              weightMultiplier: i.weightMultiplier,
+              quantity: i.quantity,
+              cut: i.cut,
+              packaging: i.packaging,
+              headOption: i.headOption,
+              offalOption: i.offalOption,
+              notes: i.notes,
+              totalPrice: i.totalPrice));
+    }
+    _currentTab = 2;
+    _persist();
+    notifyListeners();
+  }
+
+  // Addresses
+  void addAddress(DeliveryAddress address, {bool makeDefault = false}) {
+    addresses.add(address);
+    if (makeDefault) _addressIndex = addresses.length - 1;
+    notifyListeners();
+  }
+
+  void updateAddress(DeliveryAddress address) {
+    final index = addresses.indexWhere((a) => a.id == address.id);
+    if (index < 0) return;
+    addresses[index] = address;
+    notifyListeners();
+  }
+
+  bool removeAddress(String id) {
+    if (addresses.length <= 1) return false;
+    final currentId = currentAddress.id;
+    addresses.removeWhere((a) => a.id == id);
+    final keep = addresses.indexWhere((a) => a.id == currentId);
+    _addressIndex = keep < 0 ? 0 : keep;
+    notifyListeners();
+    return true;
+  }
+
+  // Payment cards
+  void addCard(SavedCard card) {
+    cards.add(card);
+    notifyListeners();
+  }
+
+  void removeCard(String id) {
+    cards.removeWhere((c) => c.id == id);
+    notifyListeners();
+  }
+
+  /// Clears every piece of user data and returns to the login screen.
+  Future<void> deleteAccount() async {
+    _cartItems.clear();
+    orders.clear();
+    cards.clear();
+    _wishlist.clear();
+    completedOrder = null;
+    _customerName = '';
+    _customerEmail = '';
+    _customerCity = 'الرياض';
+    _customerPhone = '';
+    _isFirstTimeUser = true;
+    _currentTab = 0;
+    _categoryListing = false;
+    _currentCategory = 'all';
+    _searchQuery = '';
+    try {
+      await _prefs?.clear();
+    } catch (_) {}
+    _currentFlow = AppFlow.login;
+    _persist();
     notifyListeners();
   }
 
@@ -298,6 +485,7 @@ class AppProvider extends ChangeNotifier {
     _isFirstTimeUser = !_registeredPhones.contains(cleanPhone);
     _phoneForOtp = '$dialCode $phone';
     _currentFlow = AppFlow.otp;
+    _persist();
     notifyListeners();
   }
 
@@ -307,6 +495,7 @@ class AppProvider extends ChangeNotifier {
     } else {
       _currentFlow = AppFlow.locationPermission;
     }
+    _persist();
     notifyListeners();
   }
 
@@ -324,6 +513,7 @@ class AppProvider extends ChangeNotifier {
       _registeredPhones.add(clean);
     }
     _currentFlow = AppFlow.locationPermission;
+    _persist();
     notifyListeners();
   }
 

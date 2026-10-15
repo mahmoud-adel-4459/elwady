@@ -215,7 +215,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: PrimaryButton(
                   label: 'تأكيد الطلب الآن · ${money(order.total)}',
                   onPressed: () {
-                    context.read<AppProvider>().confirmOrder(order);
+                    context.read<AppProvider>().confirmOrder(order, paymentMethod: method);
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute<void>(

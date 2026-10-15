@@ -28,7 +28,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => PopScope(
+      canPop: current == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => current--);
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
           child: LayoutBuilder(
@@ -145,5 +150,5 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ])),
           ]),
         )),
-      )));
+      ))));
 }
